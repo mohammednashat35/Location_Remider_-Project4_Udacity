@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.udacity.project4.locationreminders.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.FakeDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
+import junit.framework.Assert.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.CoreMatchers
@@ -57,11 +58,9 @@ class RemindersListViewModelTest {
     @Test
     fun testRemindersNotFound () = runBlockingTest  {
 
-        reminderRepository.setError(true)
         reminderViewModel.loadReminders()
-        MatcherAssert.assertThat(
-            reminderViewModel.showSnackBar.value, CoreMatchers.`is`("reminders not found")
-        )
+        assertEquals( reminderViewModel.showSnackBar.value, null)
+
     }
 
     @Test

@@ -40,7 +40,7 @@ class SelectLocationFragment : BaseFragment() , OnMapReadyCallback{
 
     companion object {
         internal const val ACTION_GEOFENCE_EVENT =
-            "SelectLocationFragment.ACTION_GEOFENCE_EVENT"
+            "locationReminders.geofence.action.ACTION_GEOFENCE_EVENT"
     }
 
     private lateinit var geofencingClient: GeofencingClient
@@ -87,6 +87,7 @@ class SelectLocationFragment : BaseFragment() , OnMapReadyCallback{
         return binding.root
     }
 
+
     //region MAPS'REGION
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -108,7 +109,6 @@ class SelectLocationFragment : BaseFragment() , OnMapReadyCallback{
         enableMyLocation()
 
         onLocationSelected()
-
     }
 
     private fun setMapLongClick(map: GoogleMap) {
@@ -124,17 +124,13 @@ class SelectLocationFragment : BaseFragment() , OnMapReadyCallback{
             interestPoint = map.addMarker(
                 MarkerOptions()
                     .position(latLng)
-                    .title(getString(R.string.dropped_pin))
+                    .title("Random Location")
                     .snippet(snippet)
 
             )
-
             Toast.makeText(this.context,"Random Location",Toast.LENGTH_SHORT).show()
-            findNavController().popBackStack()
-
         }
     }
-
 
     private fun setPoiClick(map: GoogleMap) {
         map.setOnPoiClickListener { poi ->
