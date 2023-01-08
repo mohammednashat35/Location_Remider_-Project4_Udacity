@@ -17,7 +17,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.findNavController
-import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -30,7 +29,6 @@ import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
-import kotlinx.coroutines.yield
 import org.koin.android.ext.android.inject
 import java.util.*
 
@@ -47,7 +45,7 @@ class SelectLocationFragment : BaseFragment() , OnMapReadyCallback{
 
     private lateinit var geofencingClient: GeofencingClient
     private lateinit var map: GoogleMap
-    private lateinit var interestPoint: PointOfInterest
+    private lateinit var interestPoint: Marker
 
     private var zoomLevel = 15f
     private val TAG = SelectLocationFragment::class.java.simpleName
@@ -80,7 +78,7 @@ class SelectLocationFragment : BaseFragment() , OnMapReadyCallback{
         geofencingClient = LocationServices.getGeofencingClient(requireActivity())
 
         setHasOptionsMenu(true)
-        setDisplayHomeAsUpEnabled(true)
+        this.setDisplayHomeAsUpEnabled(true)
 
         val mapFragment = childFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
@@ -89,7 +87,7 @@ class SelectLocationFragment : BaseFragment() , OnMapReadyCallback{
         return binding.root
     }
 
-    //region MAP'SREGION
+    //region MAPS'REGION
 
     override fun onMapReady(googleMap: GoogleMap) {
 
@@ -114,23 +112,56 @@ class SelectLocationFragment : BaseFragment() , OnMapReadyCallback{
     }
 
     private fun setMapLongClick(map: GoogleMap) {
-        map.setOnMapLongClickListener { latLng ->
 
+        map.setOnMapLongClickListener { latLng ->
+//            binding.btnSaveLocation.visibility = View.VISIBLE
             val snippet = String.format(
                 Locale.getDefault(),
                 "Lat: %1$.5f, Long: %2$.5f",
                 latLng.latitude,
                 latLng.longitude
             )
-            map.addMarker(
+            interestPoint = map.addMarker(
                 MarkerOptions()
                     .position(latLng)
                     .title(getString(R.string.dropped_pin))
                     .snippet(snippet)
 
             )
-        Toast.makeText(this.context,"Please select POI ",Toast.LENGTH_SHORT).show()
+
+            Toast.makeText(this.context,"Random Location",Toast.LENGTH_SHORT).show()
+            findNavController().popBackStack()
+
         }
+    }
+
+
+    private fun setPoiClick(map: GoogleMap) {
+        map.setOnPoiClickListener { poi ->
+//            binding.btnSaveLocation.visibility = View.VISIBLE
+             interestPoint = map.addMarker(
+                MarkerOptions()
+                    .position(poi.latLng)
+                    .title(poi.name)
+            )
+            interestPoint.showInfoWindow()
+        }
+    }
+
+    private fun onLocationSelected() {
+
+        binding.btnSaveLocation.setOnClickListener {
+            if(this::interestPoint.isInitialized){
+                    _viewModel.latitude.value = interestPoint.position.latitude
+                    _viewModel.longitude.value = interestPoint.position.longitude
+                    _viewModel.reminderSelectedLocationStr.value =interestPoint.title
+                findNavController().popBackStack()
+            }else{
+                Toast.makeText(this.context,"Please select a location",Toast.LENGTH_SHORT).show()
+            }
+
+        }
+
     }
 
     private fun setMapStyle(map: GoogleMap) {
@@ -150,18 +181,32 @@ class SelectLocationFragment : BaseFragment() , OnMapReadyCallback{
         }
     }
 
-    private fun setPoiClick(map: GoogleMap) {
-        map.setOnPoiClickListener { poi ->
-            binding.btnSaveLocation.visibility = View.VISIBLE
-            interestPoint = poi
-            val poiMarker = map.addMarker(
-                MarkerOptions()
-                    .position(poi.latLng)
-                    .title(poi.name)
+
+//endregion
+
+
+    //region PERMISSIONS'REGION
+
+    @SuppressLint("MissingPermission")
+    private fun enableMyLocation() {
+        if (isPermissionGranted()) {
+            map.setMyLocationEnabled(true)
+        }
+        else {
+            this.requestPermissions(
+                arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION),
+                REQUEST_LOCATION_PERMISSION
             )
-            poiMarker.showInfoWindow()
         }
     }
+
+    private fun isPermissionGranted() : Boolean {
+
+        return  ContextCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }
+
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -172,58 +217,18 @@ class SelectLocationFragment : BaseFragment() , OnMapReadyCallback{
         if (requestCode == REQUEST_LOCATION_PERMISSION) {
             if (grantResults.isNotEmpty() &&
                 grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
                 enableMyLocation()
+
             } else {
                 _viewModel.showSnackBarInt.value = R.string.permission_denied_explanation
             }
         }
     }
-    @SuppressLint("MissingPermission")
-    private fun enableMyLocation() {
-        if (isPermissionGranted()) {
-            map.isMyLocationEnabled = true
-        }
-        else {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                REQUEST_LOCATION_PERMISSION
-
-            )
-        }
-    }
-
-
-    private fun isPermissionGranted() : Boolean {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R){
-            val foregroundCheck =
-                ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
-            return foregroundCheck == PackageManager.PERMISSION_GRANTED
-        }
-        return false
-    }
-
-
-    private fun onLocationSelected() {
-
-        binding.btnSaveLocation.setOnClickListener {
-            if(this::interestPoint.isInitialized){
-                    _viewModel.latitude.value = interestPoint.latLng.latitude
-                    _viewModel.longitude.value = interestPoint.latLng.longitude
-                    _viewModel.selectedPOI.value =interestPoint
-                    _viewModel.reminderSelectedLocationStr.value =interestPoint.name
-                findNavController().popBackStack()
-            }else{
-
-            }
-
-        }
-
-    }
-
 //endregion
 
-    // region Menu
+
+    //region MENU'REGION
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.map_options, menu)
     }
@@ -250,9 +255,6 @@ class SelectLocationFragment : BaseFragment() , OnMapReadyCallback{
     }
 
     // endregion
-
-
-
 
 
 }

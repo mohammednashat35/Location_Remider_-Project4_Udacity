@@ -7,10 +7,13 @@ import androidx.test.espresso.Espresso
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions
 import androidx.test.espresso.assertion.ViewAssertions
+import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers
-import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import com.google.android.material.internal.ContextUtils.getActivity
 import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.local.LocalDB
@@ -20,6 +23,9 @@ import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.monitorActivity
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.Matchers
+import org.hamcrest.Matchers.`is`
+import org.hamcrest.Matchers.not
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -89,23 +95,33 @@ class RemindersActivityTest :
         IdlingRegistry.getInstance().unregister(dataBindingIdlingResource)
     }
 
+
     @Test
     fun saveReminder() {
 
         val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
         dataBindingIdlingResource.monitorActivity(activityScenario)
+
         Espresso.onView(withId(R.id.addReminderFAB)).perform(ViewActions.click())
+
         Espresso.onView(withId(R.id.reminderTitle))
+
             .perform(ViewActions.replaceText("title of reminder"))
         Espresso.onView(withId(R.id.reminderDescription))
             .perform(ViewActions.replaceText("description of reminder"))
+
         Espresso.onView(withId(R.id.selectLocation)).perform(ViewActions.click())
+
         Espresso.onView(withId(R.id.btnSaveLocation)).perform(ViewActions.click())
+
         Espresso.onView(withId(R.id.saveReminder)).perform(ViewActions.click())
+
+//        Espresso.onView(withText(R.string.reminder_saved))
+//            .inRoot(withDecorView(not(`is`(getActivity(appContext)!!.window.decorView))))
+//            .check(matches(isDisplayed()))
+
         activityScenario.close()
     }
-
-
 
 
     @Test
@@ -113,9 +129,12 @@ class RemindersActivityTest :
 
         val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
         dataBindingIdlingResource.monitorActivity(activityScenario)
+
         Espresso.onView(withId(R.id.addReminderFAB)).perform(ViewActions.click())
+
         Espresso.pressBack()
-        Espresso.onView(ViewMatchers.withText("any Thing"))
+
+        Espresso.onView(ViewMatchers.withText("No Data"))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
         activityScenario.close()
     }

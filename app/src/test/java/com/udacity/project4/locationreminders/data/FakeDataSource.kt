@@ -11,6 +11,7 @@ class FakeDataSource : ReminderDataSource {
     private var errorOrNot = false
 
 
+
     override suspend fun getReminders(): Result<List<ReminderDTO>> {
         return try {
 
@@ -22,6 +23,7 @@ class FakeDataSource : ReminderDataSource {
             Result.Error(e.localizedMessage)
         }
     }
+
 
 
     override suspend fun getReminder(id: String): Result<ReminderDTO> {

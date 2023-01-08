@@ -50,6 +50,14 @@ class RemindersLocalRepositoryTest {
     }
 
 
+    @Test
+    fun testDataNotFound() = runBlocking {
+        val result = reminderLocalRepo.getReminder("2")
+        val error =  (result is Result.Error)
+        assertThat(error, `is`(true))
+    }
+
+
 
     @Test
     fun saveReminder() = runBlocking {
@@ -70,4 +78,6 @@ class RemindersLocalRepositoryTest {
         assertThat(result.data.longitude, `is` (reminder.longitude))
 
     }
+
+
 }
