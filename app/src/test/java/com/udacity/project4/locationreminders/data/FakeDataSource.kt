@@ -15,28 +15,31 @@ class FakeDataSource : ReminderDataSource {
     }
 
     override suspend fun getReminders(): Result<List<ReminderDTO>>{
-        return try {
-            if(shouldReturnError) {
-                throw Exception("reminders not found")
-            }
+
+
+        return if (shouldReturnError){
+            Result.Error("reminders not found")
+        }else{
             Result.Success(ArrayList(listOfReminder))
-        } catch (ex: Exception) {
-            Result.Error(ex.localizedMessage)
         }
+
     }
 
     override suspend fun getReminder(id: String): Result<ReminderDTO>  {
-        return try {
+
+
+        return if(shouldReturnError){
+            Result.Error("Error")
+        }else{
             val reminder = listOfReminder.find { it.id == id }
-            if (shouldReturnError || reminder == null) {
-                throw Exception("Not found $id")
-            } else {
+            if (reminder != null) {
                 Result.Success(reminder)
+            } else {
+                Result.Error("reminder not found")
             }
-        } catch (e:Exception) {
-            Result.Error(e.localizedMessage)
         }
     }
+
     override suspend fun saveReminder(reminder: ReminderDTO) {
         listOfReminder.add(reminder)
     }
