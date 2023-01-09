@@ -58,8 +58,12 @@ class RemindersListViewModelTest {
     @Test
     fun testRemindersNotFound () = runBlockingTest  {
 
+        reminderRepository.setReturnError(true)
+        saveReminder()
         reminderViewModel.loadReminders()
-        assertEquals( reminderViewModel.showSnackBar.value, null)
+        MatcherAssert.assertThat(
+            reminderViewModel.showSnackBar.value, CoreMatchers.`is`("reminders not found")
+        )
 
     }
 
@@ -67,6 +71,7 @@ class RemindersListViewModelTest {
     fun loadReminder() = runBlockingTest{
 
         mainCoroutineRule.pauseDispatcher()
+        saveReminder()
         reminderViewModel.loadReminders()
         MatcherAssert.assertThat(reminderViewModel.showLoading.value, CoreMatchers.`is`(true))
         mainCoroutineRule.resumeDispatcher()

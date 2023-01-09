@@ -49,14 +49,17 @@ class RemindersLocalRepositoryTest {
         reminderDatabase.close()
     }
 
-
     @Test
     fun testDataNotFound() = runBlocking {
-        val result = reminderLocalRepo.getReminder("2")
-        val error =  (result is Result.Error)
-        assertThat(error, `is`(true))
-    }
 
+        val result = reminderLocalRepo.getReminder("2")
+
+        val error = result is Result.Error
+        assertThat(error, `is`(true))
+
+        val resultOfError =  result as Result.Error
+        assertThat(resultOfError.message, `is`("Reminder not found!"))
+    }
 
 
     @Test

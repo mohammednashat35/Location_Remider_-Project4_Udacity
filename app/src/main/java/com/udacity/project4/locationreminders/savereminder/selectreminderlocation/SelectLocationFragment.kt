@@ -151,11 +151,10 @@ class SelectLocationFragment : BaseFragment() , OnMapReadyCallback{
                     _viewModel.latitude.value = interestPoint.position.latitude
                     _viewModel.longitude.value = interestPoint.position.longitude
                     _viewModel.reminderSelectedLocationStr.value =interestPoint.title
-                findNavController().popBackStack()
             }else{
-                Toast.makeText(this.context,"Please select a location",Toast.LENGTH_SHORT).show()
+//                Toast.makeText(this.context,"Please select a location",Toast.LENGTH_SHORT).show()
             }
-
+          findNavController().popBackStack()
         }
 
     }
