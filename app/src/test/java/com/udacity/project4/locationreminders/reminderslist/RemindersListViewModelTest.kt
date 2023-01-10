@@ -58,12 +58,11 @@ class RemindersListViewModelTest {
     @Test
     fun testRemindersNotFound () = runBlockingTest  {
 
-
         reminderRepository.setReturnError(true)
         saveReminder()
         reminderViewModel.loadReminders()
         MatcherAssert.assertThat(
-            reminderViewModel.showSnackBar.value, CoreMatchers.`is`("reminders not found")
+            reminderViewModel.showSnackBar.value, CoreMatchers.`is`("an exception thrown ")
         )
 
     }
